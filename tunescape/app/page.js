@@ -24,8 +24,8 @@ export default function Home() {
     fetch("https://ipapi.co/json/").then((res) => {
       res.json().then((data) => {
         if (data.latitude && data.longitude) {
-          setLatitude(Math.round(data.latitude * 100) / 100);
-          setLongitude(Math.round(data.longitude * 100) / 100);
+          setLatitude(data.latitude.toFixed(2));
+          setLongitude(data.longitude.toFixed(2));
         }
       });
     });
@@ -35,8 +35,8 @@ export default function Home() {
     if (window.navigator && window.navigator.geolocation) {
       window.navigator.geolocation.getCurrentPosition((position) => {
         if (position.coords.latitude && position.coords.longitude) {
-          setLatitude(Math.round(position.coords.latitude * 100) / 100);
-          setLongitude(Math.round(position.coords.longitude * 100) / 100);
+          setLatitude(position.coords.latitude.toFixed(2));
+          setLongitude(position.coords.longitude.toFixed(2));
         } else {
           getLocationFromIP();
         }
