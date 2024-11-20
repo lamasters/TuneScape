@@ -1,0 +1,8 @@
+node_modules/
+.venv/
+scripts/
+music/
+appwrite.json
+.next/
+.env
+.DS_Store
