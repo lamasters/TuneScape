@@ -20,6 +20,17 @@ export default function Home() {
     .setProject("6738fca6003590a48574");
   const functions = new Functions(client);
 
+  function getLocationFromIP() {
+    fetch("https://ipapi.co/json/").then((res) => {
+      res.json().then((data) => {
+        if (data.latitude && data.longitude) {
+          setLatitude(Math.round(data.latitude * 100) / 100);
+          setLongitude(Math.round(data.longitude * 100) / 100);
+        }
+      });
+    });
+  }
+
   useEffect(() => {
     setInterval(() => {
       if (window.navigator && window.navigator.geolocation) {
@@ -27,18 +38,12 @@ export default function Home() {
           if (position.coords.latitude && position.coords.longitude) {
             setLatitude(Math.round(position.coords.latitude * 100) / 100);
             setLongitude(Math.round(position.coords.longitude * 100) / 100);
+          } else {
+            getLocationFromIP();
           }
         });
-      }
-      if (latitude === null || longitude === null) {
-        fetch("https://ipapi.co/json/").then((res) => {
-          res.json().then((data) => {
-            if (data.latitude && data.longitude) {
-              setLatitude(Math.round(data.latitude * 100) / 100);
-              setLongitude(Math.round(data.longitude * 100) / 100);
-            }
-          });
-        });
+      } else {
+        getLocationFromIP();
       }
     }, 10000);
   }, []);
