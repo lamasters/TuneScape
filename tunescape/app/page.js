@@ -22,25 +22,23 @@ export default function Home() {
 
   useEffect(() => {
     setInterval(() => {
-      let latitude = null;
-      let longitude = null;
       if (window.navigator && window.navigator.geolocation) {
         window.navigator.geolocation.getCurrentPosition((position) => {
-          latitude = Math.round(position.coords.latitude * 100) / 100;
-          longitude = Math.round(position.coords.longitude * 100) / 100;
+          if (position.coords.latitude && position.coords.longitude) {
+            setLatitude(Math.round(position.coords.latitude * 100) / 100);
+            setLongitude(Math.round(position.coords.longitude * 100) / 100);
+          }
         });
       }
       if (latitude === null || longitude === null) {
         fetch("https://ipapi.co/json/").then((res) => {
           res.json().then((data) => {
-            latitude = Math.round(data.latitude * 100) / 100;
-            longitude = Math.round(data.longitude * 100) / 100;
+            if (data.latitude && data.longitude) {
+              setLatitude(Math.round(data.latitude * 100) / 100);
+              setLongitude(Math.round(data.longitude * 100) / 100);
+            }
           });
         });
-      }
-      if (latitude !== null && longitude !== null) {
-        setLatitude(latitude);
-        setLongitude(longitude);
       }
     }, 10000);
   }, []);
