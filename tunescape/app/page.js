@@ -10,7 +10,7 @@ export default function Home() {
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
   const [source, setSource] = useState(
-    "https://homelab.hippogriff-lime.ts.net/v1/storage/buckets/673924ee0018eaadf391/files/673925200019ea797ea1/view?project=6738fca6003590a48574&project=6738fca6003590a48574&mode=admin"
+    "https://homelab.hippogriff-lime.ts.net/v1/storage/buckets/673924ee0018eaadf391/files/673925200019ea797ea1/view?project=6738fca6003590a48574"
   );
   const [songName, setSongName] = useState("Scape Main");
 
@@ -31,20 +31,25 @@ export default function Home() {
     });
   }
 
+  function getLocation() {
+    if (window.navigator && window.navigator.geolocation) {
+      window.navigator.geolocation.getCurrentPosition((position) => {
+        if (position.coords.latitude && position.coords.longitude) {
+          setLatitude(Math.round(position.coords.latitude * 100) / 100);
+          setLongitude(Math.round(position.coords.longitude * 100) / 100);
+        } else {
+          getLocationFromIP();
+        }
+      });
+    } else {
+      getLocationFromIP();
+    }
+  }
+
   useEffect(() => {
+    getLocation();
     setInterval(() => {
-      if (window.navigator && window.navigator.geolocation) {
-        window.navigator.geolocation.getCurrentPosition((position) => {
-          if (position.coords.latitude && position.coords.longitude) {
-            setLatitude(Math.round(position.coords.latitude * 100) / 100);
-            setLongitude(Math.round(position.coords.longitude * 100) / 100);
-          } else {
-            getLocationFromIP();
-          }
-        });
-      } else {
-        getLocationFromIP();
-      }
+      getLocation();
     }, 10000);
   }, []);
 
