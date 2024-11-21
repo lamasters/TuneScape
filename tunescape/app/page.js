@@ -14,7 +14,6 @@ export default function Home() {
   );
   const [songName, setSongName] = useState("Scape Main");
   const [shuffle, setShuffle] = useState(false);
-  const [locationInterval, setLocationInterval] = useState(null);
   const [playlist, setPlaylist] = useState([]);
   const [playlistIndex, setPlaylistIndex] = useState(0);
 
@@ -46,7 +45,7 @@ export default function Home() {
 
   async function getSong() {
     console.log("Updating song!");
-    if (!latitude || !longitude) return;
+    if (shuffle || !latitude || !longitude) return;
     const songData = getSongForLocation(latitude, longitude);
     if (!songData.url || !songData.name) return;
     setSource(songData.url);
@@ -78,12 +77,18 @@ export default function Home() {
   }
 
   useEffect(() => {
+    getLocation();
+    setInterval(() => {
+      getLocation();
+    }, 10000);
+  }, []);
+
+  useEffect(() => {
     getSong();
   }, [latitude, longitude]);
 
   useEffect(() => {
     if (shuffle) {
-      clearInterval(locationInterval);
       const newPlaylist = getShuffledPlaylist();
       setPlaylist(newPlaylist);
       setSource(
@@ -92,11 +97,6 @@ export default function Home() {
       setSongName(newPlaylist[0][1]);
     } else {
       getLocation();
-      const interval = setInterval(() => {
-        getLocation();
-      }, 10000);
-      setLocationInterval(interval);
-      setPlaylist([]);
     }
   }, [shuffle]);
 
