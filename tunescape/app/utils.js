@@ -5,17 +5,13 @@ const GRID_SIZE = 28;
 const GRID_SPACING = 0.01;
 
 export function getSongForLocation(latitude, longitude) {
-  console.log(song_grid);
   const latitudeOffset = Math.abs(
     Math.round(latitude * (1 / GRID_SPACING)) % GRID_SIZE
   );
   const longitudeOffset = Math.abs(
     Math.round(longitude * (1 / GRID_SPACING)) % GRID_SIZE
   );
-  console.log(latitude, longitude);
-  console.log(latitudeOffset, longitudeOffset);
   const song = song_grid.song_grid[latitudeOffset][longitudeOffset];
-  console.log(song);
   const songName = song_dict[song];
   const songUrl = `https://oldschool.runescape.wiki/images/transcoded/${song}/${song}.mp3`;
 

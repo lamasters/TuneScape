@@ -44,7 +44,6 @@ export default function Home() {
   }
 
   async function getSong() {
-    console.log("Updating song!");
     if (shuffle || !latitude || !longitude) return;
     const songData = getSongForLocation(latitude, longitude);
     if (!songData.url || !songData.name) return;
@@ -96,7 +95,7 @@ export default function Home() {
       );
       setSongName(newPlaylist[0][1]);
     } else {
-      getLocation();
+      getSong();
     }
   }, [shuffle]);
 
