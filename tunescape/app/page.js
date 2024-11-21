@@ -3,8 +3,8 @@ import AudioPlayer from "react-h5-audio-player";
 import "react-h5-audio-player/lib/styles.css";
 import styles from "./page.module.css";
 import { useEffect, useState } from "react";
-import { Client, Functions } from "appwrite";
 import Image from "next/image";
+import { getSongForLocation, getShuffledPlaylist } from "@/app/utils";
 
 export default function Home() {
   const [latitude, setLatitude] = useState(null);
@@ -13,19 +13,17 @@ export default function Home() {
     "https://homelab.hippogriff-lime.ts.net/v1/storage/buckets/673924ee0018eaadf391/files/673925200019ea797ea1/view?project=6738fca6003590a48574"
   );
   const [songName, setSongName] = useState("Scape Main");
-
-  const client = new Client();
-  client
-    .setEndpoint("https://homelab.hippogriff-lime.ts.net/v1")
-    .setProject("6738fca6003590a48574");
-  const functions = new Functions(client);
+  const [shuffle, setShuffle] = useState(false);
+  const [locationInterval, setLocationInterval] = useState(null);
+  const [playlist, setPlaylist] = useState([]);
+  const [playlistIndex, setPlaylistIndex] = useState(0);
 
   function getLocationFromIP() {
     fetch("https://ipapi.co/json/").then((res) => {
       res.json().then((data) => {
         if (data.latitude && data.longitude) {
-          setLatitude(data.latitude.toFixed(2));
-          setLongitude(data.longitude.toFixed(2));
+          setLatitude(data.latitude);
+          setLongitude(data.longitude);
         }
       });
     });
@@ -35,8 +33,8 @@ export default function Home() {
     if (window.navigator && window.navigator.geolocation) {
       window.navigator.geolocation.getCurrentPosition((position) => {
         if (position.coords.latitude && position.coords.longitude) {
-          setLatitude(position.coords.latitude.toFixed(2));
-          setLongitude(position.coords.longitude.toFixed(2));
+          setLatitude(position.coords.latitude);
+          setLongitude(position.coords.longitude);
         } else {
           getLocationFromIP();
         }
@@ -46,29 +44,61 @@ export default function Home() {
     }
   }
 
-  useEffect(() => {
-    getLocation();
-    setInterval(() => {
-      getLocation();
-    }, 10000);
-  }, []);
+  async function getSong() {
+    console.log("Updating song!");
+    if (!latitude || !longitude) return;
+    const songData = getSongForLocation(latitude, longitude);
+    if (!songData.url || !songData.name) return;
+    setSource(songData.url);
+    setSongName(songData.name);
+  }
+
+  function onSongEnd() {
+    if (shuffle) {
+      let newPlaylistIndex = playlistIndex + 1;
+      if (newPlaylistIndex >= playlist.length) newPlaylistIndex = 0;
+      const song = playlist[newPlaylistIndex];
+      setSource(
+        `https://oldschool.runescape.wiki/images/transcoded/${song[0]}/${song[0]}.mp3`
+      );
+      setSongName(song[1]);
+      setPlaylistIndex(newPlaylistIndex);
+    }
+  }
+
+  function onClickLastSong() {
+    let newPlaylistIndex = playlistIndex - 1;
+    if (newPlaylistIndex < 0) newPlaylistIndex = playlist.length - 1;
+    const song = playlist[newPlaylistIndex];
+    setSource(
+      `https://oldschool.runescape.wiki/images/transcoded/${song[0]}/${song[0]}.mp3`
+    );
+    setSongName(song[1]);
+    setPlaylistIndex(newPlaylistIndex);
+  }
 
   useEffect(() => {
-    async function getSong() {
-      console.log("Updating song!");
-      if (latitude === null || longitude === null) return;
-      const res = await functions.createExecution(
-        "673d545c001f5c42abf2",
-        JSON.stringify({ location: `${latitude},${longitude}` })
-      );
-      if (!res.responseBody) return;
-      const body = JSON.parse(res.responseBody);
-      console.log(body.song_url);
-      if (body.song_url) setSource(body.song_url);
-      if (body.song_name) setSongName(body.song_name);
-    }
     getSong();
   }, [latitude, longitude]);
+
+  useEffect(() => {
+    if (shuffle) {
+      clearInterval(locationInterval);
+      const newPlaylist = getShuffledPlaylist();
+      setPlaylist(newPlaylist);
+      setSource(
+        `https://oldschool.runescape.wiki/images/transcoded/${newPlaylist[0][0]}/${newPlaylist[0][0]}.mp3`
+      );
+      setSongName(newPlaylist[0][1]);
+    } else {
+      getLocation();
+      const interval = setInterval(() => {
+        getLocation();
+      }, 10000);
+      setLocationInterval(interval);
+      setPlaylist([]);
+    }
+  }, [shuffle]);
 
   return (
     <div className={styles.page}>
@@ -78,12 +108,23 @@ export default function Home() {
         <h2 style={{ color: "white", textAlign: "center" }}>
           Playing: {songName}
         </h2>
+        <h3
+          style={{ color: "white", textAlign: "center" }}
+          className={styles.toggle}
+          onClick={() => setShuffle(!shuffle)}
+        >
+          Switch to {shuffle ? "Travel" : "Shuffle"} Mode
+        </h3>
         <AudioPlayer
           autoPlay
           autoPlayAfterSrcChange
-          showJumpControls={false}
-          loop
+          showJumpControls={shuffle}
+          showSkipControls={shuffle}
+          loop={!shuffle}
           src={source}
+          onEnded={() => onSongEnd()}
+          onClickNext={() => onSongEnd()}
+          onClickPrevious={() => onClickLastSong()}
           style={{
             position: "fixed",
             left: 0,

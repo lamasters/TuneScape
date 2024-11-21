@@ -48,3 +48,14 @@
     filter: invert();
   }
 }
+
+.toggle {
+  background-color: #555;
+  border-radius: 10px;
+  padding: 8px 16px;
+}
+
+.toggle:hover {
+  background-color: #444;
+  cursor: pointer;
+}
