@@ -22,6 +22,16 @@ export default function Home() {
   const [playlistIndex, setPlaylistIndex] = useState(0);
   const [source, setSource] = useState(getSongUrl(playlist[0][0]));
   const [songName, setSongName] = useState(playlist[0][1]);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
+  function showToast(message) {
+    setToastMessage(message);
+    setToastVisible(true);
+    setTimeout(() => {
+      setToastVisible(false);
+    }, 3000);
+  }
 
   function getLocationFromIP() {
     fetch("https://ipapi.co/json/").then((res) => {
@@ -78,11 +88,17 @@ export default function Home() {
   }
 
   useEffect(() => {
-    getLocation();
-    setInterval(() => {
+    let interval = null;
+    if (playMode === "travel") {
       getLocation();
-    }, 10000);
-  }, []);
+      interval = setInterval(() => {
+        getLocation();
+      }, 10000);
+    }
+    return () => {
+      if (interval !== null) clearInterval(interval);
+    };
+  }, [playMode]);
 
   useEffect(() => {
     getSong();
@@ -135,7 +151,29 @@ export default function Home() {
             </div>
           </>
         ) : (
-          <Image src="/dance.gif" height="300" width="300" alt="Dancing guy" />
+          <>
+            <Image
+              src="/dance.gif"
+              height="300"
+              width="300"
+              alt="Dancing guy"
+            />
+            {playMode === "travel" && (
+              <div
+                className={styles.toggle}
+                style={{
+                  fontSize: "1.2em",
+                }}
+                onClick={() =>
+                  showToast(
+                    "Travel mode sets the song based on your location. As you travel, the song will change automatically."
+                  )
+                }
+              >
+                How does Travel Mode work?
+              </div>
+            )}
+          </>
         )}
         <div
           style={{
@@ -147,15 +185,6 @@ export default function Home() {
         >
           {playMode !== "shuffle" && (
             <h3
-              style={{
-                color: "white",
-                textAlign: "center",
-                flex: 1,
-                minWidth: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
               className={styles.toggle}
               onClick={() => setPlayMode("shuffle")}
             >
@@ -163,36 +192,12 @@ export default function Home() {
             </h3>
           )}
           {playMode !== "travel" && (
-            <h3
-              style={{
-                color: "white",
-                textAlign: "center",
-                flex: 1,
-                minWidth: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              className={styles.toggle}
-              onClick={() => setPlayMode("travel")}
-            >
+            <h3 className={styles.toggle} onClick={() => setPlayMode("travel")}>
               Travel Mode
             </h3>
           )}
           {playMode !== "list" && (
-            <h3
-              style={{
-                color: "white",
-                textAlign: "center",
-                flex: 1,
-                minWidth: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              className={styles.toggle}
-              onClick={() => setPlayMode("list")}
-            >
+            <h3 className={styles.toggle} onClick={() => setPlayMode("list")}>
               Song Select
             </h3>
           )}
@@ -217,6 +222,7 @@ export default function Home() {
           }}
         />
       </main>
+      {toastVisible && <div className={styles.toast}>{toastMessage}</div>}
     </div>
   );
 }
