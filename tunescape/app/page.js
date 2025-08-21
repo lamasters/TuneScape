@@ -165,7 +165,7 @@ export default function Home() {
                     onClick={() => {
                       setSource(getSongUrl(song[0]));
                       setSongName(song[1]);
-                      setPlaylistIndex(index);
+                      setPlaylistIndex(playlist.indexOf(song));
                     }}
                   >
                     {song[1]}
