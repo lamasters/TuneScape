@@ -24,6 +24,7 @@ export default function Home() {
   const [songName, setSongName] = useState(playlist[0][1]);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [search, setSearch] = useState("");
 
   function showToast(message) {
     setToastMessage(message);
@@ -133,21 +134,43 @@ export default function Home() {
         </h2>
         {playMode === "list" ? (
           <>
-            <div style={{ width: 300, height: 300, overflowY: "scroll" }}>
-              {playlist.map((song, index) => (
-                <div
-                  key={index}
-                  className={styles.song_item}
-                  style={{ color: songName == song[1] ? "#14F050" : "yellow" }}
-                  onClick={() => {
-                    setSource(getSongUrl(song[0]));
-                    setSongName(song[1]);
-                    setPlaylistIndex(index);
-                  }}
-                >
-                  {song[1]}
-                </div>
-              ))}
+            <input
+              type="text"
+              placeholder="Search songs..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                width: 300,
+                marginBottom: 12,
+                padding: "8px 12px",
+                fontSize: "1em",
+                borderRadius: 8,
+                border: "1px solid #888",
+                background: "#222",
+                color: "#fff",
+              }}
+            />
+            <div style={{ width: 300, height: 250, overflowY: "scroll" }}>
+              {playlist
+                .filter((song) =>
+                  song[1].toLowerCase().includes(search.toLowerCase())
+                )
+                .map((song, index) => (
+                  <div
+                    key={index}
+                    className={styles.song_item}
+                    style={{
+                      color: songName == song[1] ? "#14F050" : "yellow",
+                    }}
+                    onClick={() => {
+                      setSource(getSongUrl(song[0]));
+                      setSongName(song[1]);
+                      setPlaylistIndex(index);
+                    }}
+                  >
+                    {song[1]}
+                  </div>
+                ))}
             </div>
           </>
         ) : (
