@@ -1,21 +1,22 @@
 "use client";
-import AudioPlayer from "react-h5-audio-player";
+
 import "react-h5-audio-player/lib/styles.css";
-import styles from "./page.module.css";
+
+import { getPlaylist, getShuffledPlaylist, getSongForLocation, getSongUrl } from "@/app/utils";
 import { useEffect, useState } from "react";
+
+import AudioPlayer from "react-h5-audio-player";
 import Image from "next/image";
-import { getSongForLocation, getShuffledPlaylist } from "@/app/utils";
+import styles from "./page.module.css";
 
 export default function Home() {
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
-  const [source, setSource] = useState(
-    "https://homelab.hippogriff-lime.ts.net/v1/storage/buckets/673924ee0018eaadf391/files/673925200019ea797ea1/view?project=6738fca6003590a48574"
-  );
-  const [songName, setSongName] = useState("Scape Main");
-  const [shuffle, setShuffle] = useState(false);
-  const [playlist, setPlaylist] = useState([]);
+  const [playMode, setPlayMode] = useState("list");
+  const [playlist, setPlaylist] = useState(getPlaylist());
   const [playlistIndex, setPlaylistIndex] = useState(0);
+  const [source, setSource] = useState(getSongUrl(playlist[0][0]));
+  const [songName, setSongName] = useState(playlist[0][1]);
 
   function getLocationFromIP() {
     fetch("https://ipapi.co/json/").then((res) => {
@@ -44,7 +45,7 @@ export default function Home() {
   }
 
   async function getSong() {
-    if (shuffle || !latitude || !longitude) return;
+    if (playMode !== "travel" || !latitude || !longitude) return;
     const songData = getSongForLocation(latitude, longitude);
     if (!songData.url || !songData.name) return;
     setSource(songData.url);
@@ -52,12 +53,12 @@ export default function Home() {
   }
 
   function onSongEnd() {
-    if (shuffle) {
+    if (playMode !== "travel") {
       let newPlaylistIndex = playlistIndex + 1;
       if (newPlaylistIndex >= playlist.length) newPlaylistIndex = 0;
       const song = playlist[newPlaylistIndex];
       setSource(
-        `https://oldschool.runescape.wiki/images/transcoded/${song[0]}/${song[0]}.mp3`
+        getSongUrl(song[0])
       );
       setSongName(song[1]);
       setPlaylistIndex(newPlaylistIndex);
@@ -69,7 +70,7 @@ export default function Home() {
     if (newPlaylistIndex < 0) newPlaylistIndex = playlist.length - 1;
     const song = playlist[newPlaylistIndex];
     setSource(
-      `https://oldschool.runescape.wiki/images/transcoded/${song[0]}/${song[0]}.mp3`
+      getSongUrl(song[0])
     );
     setSongName(song[1]);
     setPlaylistIndex(newPlaylistIndex);
@@ -87,39 +88,84 @@ export default function Home() {
   }, [latitude, longitude]);
 
   useEffect(() => {
-    if (shuffle) {
-      const newPlaylist = getShuffledPlaylist();
-      setPlaylist(newPlaylist);
-      setSource(
-        `https://oldschool.runescape.wiki/images/transcoded/${newPlaylist[0][0]}/${newPlaylist[0][0]}.mp3`
-      );
-      setSongName(newPlaylist[0][1]);
-    } else {
-      getSong();
+    switch (playMode) {
+      case "shuffle":
+        const newPlaylist = getShuffledPlaylist();
+        setPlaylist(newPlaylist);
+        setSource(
+          getSongUrl(newPlaylist[0][0])
+        );
+        setSongName(newPlaylist[0][1]);
+        setPlaylistIndex(0);
+        break;
+      case "list":
+        const fullPlaylist = getPlaylist();
+        setPlaylist(fullPlaylist);
+        setPlaylistIndex(0);
+        break;
+      case "travel":
+        getSong();
+        break;
     }
-  }, [shuffle]);
+  }, [playMode]);
 
   return (
     <div className={styles.page}>
       <h1 style={{ color: "white" }}>TuneScape</h1>
       <main className={styles.main}>
-        <Image src="/dance.gif" height="300" width="300" alt="Dancing guy" />
         <h2 style={{ color: "white", textAlign: "center" }}>
           Playing: {songName}
         </h2>
-        <h3
-          style={{ color: "white", textAlign: "center" }}
-          className={styles.toggle}
-          onClick={() => setShuffle(!shuffle)}
-        >
-          Switch to {shuffle ? "Travel" : "Shuffle"} Mode
-        </h3>
+        {playMode === "list" ? <>
+          <div style={{width: 300, height: 300, overflowY: "scroll"}}>
+            {playlist.map((song, index) => (
+              <div
+                key={index}
+                className={styles.song_item}
+                style={{color: songName == song[1] ? "#14F050" : "yellow"}}
+                onClick={() => {
+                  setSource(
+                    getSongUrl(song[0])
+                  );
+                  setSongName(song[1]);
+                  setPlaylistIndex(index);
+                }}
+                >{song[1]}</div>
+            ))}
+          </div>
+        </> : <Image src="/dance.gif" height="300" width="300" alt="Dancing guy" />}
+        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: '1rem' }}>
+          {playMode !== "shuffle" && <h3
+            style={{ color: "white", textAlign: "center", flex: 1, minWidth: 0 }}
+            className={styles.toggle}
+            onClick={() => setPlayMode("shuffle")}
+          >
+            Shuffle
+          </h3>
+          }
+          {playMode !== "travel" &&<h3
+            style={{ color: "white", textAlign: "center", flex: 1, minWidth: 0 }}
+            className={styles.toggle}
+            onClick={() => setPlayMode("travel")}
+          >
+            Travel Mode
+          </h3>
+          }
+          {playMode !== "list" && <h3
+            style={{ color: "white", textAlign: "center", flex: 1, minWidth: 0 }}
+            className={styles.toggle}
+            onClick={() => setPlayMode("list")}
+          >
+            Song Select
+          </h3>
+          }
+        </div>
         <AudioPlayer
           autoPlay
           autoPlayAfterSrcChange
-          showJumpControls={shuffle}
-          showSkipControls={shuffle}
-          loop={!shuffle}
+          showJumpControls={playMode !== "travel"}
+          showSkipControls={playMode !== "travel"}
+          loop={playMode === "travel"}
           src={source}
           onEnded={() => onSongEnd()}
           onClickNext={() => onSongEnd()}
