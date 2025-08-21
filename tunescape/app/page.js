@@ -2,7 +2,12 @@
 
 import "react-h5-audio-player/lib/styles.css";
 
-import { getPlaylist, getShuffledPlaylist, getSongForLocation, getSongUrl } from "@/app/utils";
+import {
+  getPlaylist,
+  getShuffledPlaylist,
+  getSongForLocation,
+  getSongUrl,
+} from "@/app/utils";
 import { useEffect, useState } from "react";
 
 import AudioPlayer from "react-h5-audio-player";
@@ -57,9 +62,7 @@ export default function Home() {
       let newPlaylistIndex = playlistIndex + 1;
       if (newPlaylistIndex >= playlist.length) newPlaylistIndex = 0;
       const song = playlist[newPlaylistIndex];
-      setSource(
-        getSongUrl(song[0])
-      );
+      setSource(getSongUrl(song[0]));
       setSongName(song[1]);
       setPlaylistIndex(newPlaylistIndex);
     }
@@ -69,9 +72,7 @@ export default function Home() {
     let newPlaylistIndex = playlistIndex - 1;
     if (newPlaylistIndex < 0) newPlaylistIndex = playlist.length - 1;
     const song = playlist[newPlaylistIndex];
-    setSource(
-      getSongUrl(song[0])
-    );
+    setSource(getSongUrl(song[0]));
     setSongName(song[1]);
     setPlaylistIndex(newPlaylistIndex);
   }
@@ -92,9 +93,7 @@ export default function Home() {
       case "shuffle":
         const newPlaylist = getShuffledPlaylist();
         setPlaylist(newPlaylist);
-        setSource(
-          getSongUrl(newPlaylist[0][0])
-        );
+        setSource(getSongUrl(newPlaylist[0][0]));
         setSongName(newPlaylist[0][1]);
         setPlaylistIndex(0);
         break;
@@ -116,49 +115,87 @@ export default function Home() {
         <h2 style={{ color: "white", textAlign: "center" }}>
           Playing: {songName}
         </h2>
-        {playMode === "list" ? <>
-          <div style={{width: 300, height: 300, overflowY: "scroll"}}>
-            {playlist.map((song, index) => (
-              <div
-                key={index}
-                className={styles.song_item}
-                style={{color: songName == song[1] ? "#14F050" : "yellow"}}
-                onClick={() => {
-                  setSource(
-                    getSongUrl(song[0])
-                  );
-                  setSongName(song[1]);
-                  setPlaylistIndex(index);
-                }}
-                >{song[1]}</div>
-            ))}
-          </div>
-        </> : <Image src="/dance.gif" height="300" width="300" alt="Dancing guy" />}
-        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: '1rem' }}>
-          {playMode !== "shuffle" && <h3
-            style={{ color: "white", textAlign: "center", flex: 1, minWidth: 0 }}
-            className={styles.toggle}
-            onClick={() => setPlayMode("shuffle")}
-          >
-            Shuffle
-          </h3>
-          }
-          {playMode !== "travel" &&<h3
-            style={{ color: "white", textAlign: "center", flex: 1, minWidth: 0 }}
-            className={styles.toggle}
-            onClick={() => setPlayMode("travel")}
-          >
-            Travel Mode
-          </h3>
-          }
-          {playMode !== "list" && <h3
-            style={{ color: "white", textAlign: "center", flex: 1, minWidth: 0 }}
-            className={styles.toggle}
-            onClick={() => setPlayMode("list")}
-          >
-            Song Select
-          </h3>
-          }
+        {playMode === "list" ? (
+          <>
+            <div style={{ width: 300, height: 300, overflowY: "scroll" }}>
+              {playlist.map((song, index) => (
+                <div
+                  key={index}
+                  className={styles.song_item}
+                  style={{ color: songName == song[1] ? "#14F050" : "yellow" }}
+                  onClick={() => {
+                    setSource(getSongUrl(song[0]));
+                    setSongName(song[1]);
+                    setPlaylistIndex(index);
+                  }}
+                >
+                  {song[1]}
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <Image src="/dance.gif" height="300" width="300" alt="Dancing guy" />
+        )}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            width: "100%",
+            gap: "1rem",
+          }}
+        >
+          {playMode !== "shuffle" && (
+            <h3
+              style={{
+                color: "white",
+                textAlign: "center",
+                flex: 1,
+                minWidth: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              className={styles.toggle}
+              onClick={() => setPlayMode("shuffle")}
+            >
+              Shuffle
+            </h3>
+          )}
+          {playMode !== "travel" && (
+            <h3
+              style={{
+                color: "white",
+                textAlign: "center",
+                flex: 1,
+                minWidth: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              className={styles.toggle}
+              onClick={() => setPlayMode("travel")}
+            >
+              Travel Mode
+            </h3>
+          )}
+          {playMode !== "list" && (
+            <h3
+              style={{
+                color: "white",
+                textAlign: "center",
+                flex: 1,
+                minWidth: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              className={styles.toggle}
+              onClick={() => setPlayMode("list")}
+            >
+              Song Select
+            </h3>
+          )}
         </div>
         <AudioPlayer
           autoPlay
